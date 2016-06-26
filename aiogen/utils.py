@@ -3,60 +3,40 @@ import asyncio as aio
 import unittest
 from functools import wraps
 
+from aiogen.agenerator import AsyncGenerator
 
-# TASKS:
-def add_async_callback(fut: aio.Future, coro):
-    print('!', fut)  # TODO !!!
-    done = aio.Future()
-    # Delegate all "fut"'s callbacks to "done" event:
-    for cb in fut._callbacks:
-        fut.remove_done_callback(cb)
-        done.add_done_callback(cb)
-    # Start task to set "done" on "fut" done:
-    async def async_callback():
-        try:
-            await coro
-        except Exception as exc:
-            loop = aio.get_event_loop()
-            context = {
-                'message': 'Exception in async callback {}'.format(coro),
-                'exception': exc,
-            }
-            loop.call_exception_handler(context)
-        finally:
-            print('!!', fut)  # TODO !!!
-            try:
-                done.set_result(None)
-            except Exception as exc:
-                print('!!!', type(exc), exc)  # TODO !!!
-    fut.add_done_callback(lambda t: aio.ensure_future(async_callback()))
+
+# SIMPLE EVENT LOOP:
+def run_until_complete(coro):
+    """Run new event loop until coroutine complete."""
+    loop = aio.new_event_loop()
+    aio.set_event_loop(loop)
+    loop.set_debug(True)
+    try:
+        loop.run_until_complete(coro)
+        loop.run_until_complete(AsyncGenerator.cleanup())
+    finally:
+        loop.close()
+
 
 # TESTS:
 class AsyncTestCase(unittest.TestCase):
     """TestCase to run all coroutine functions in class in separate event loop."""
     @classmethod
     def setUpClass(cls):
+        # Decorator to create plain function from coroutine:
+        def run_in_loop(coro_func):
+            @wraps(coro_func)
+            def wrapper(*args, **kwargs):
+                run_until_complete(coro_func(*args, **kwargs))
+            return wrapper
+        # All coroutines should be executed in event loop:
         names = unittest.TestLoader().getTestCaseNames(cls)
         for name, obj in vars(cls).items():
             if (name in names) and aio.iscoroutinefunction(obj):
-                setattr(cls, name, _run_in_loop(obj))
+                setattr(cls, name, run_in_loop(obj))
 
 
-def _run_in_loop(func_to_decorate):
-    """Decorator to run coroutine in event loop."""
-    @wraps(func_to_decorate)
-    def wrapper(*args, **kwargs):
-        loop = aio.new_event_loop()
-        aio.set_event_loop(loop)
-        loop.set_debug(True)
-        try:
-            loop.run_until_complete(func_to_decorate(*args, **kwargs))
-        finally:
-            loop.close()
-    return wrapper
-
-
-# HELPERS:
 def extract_tests(item) -> Iterable[unittest.TestCase]:
     """Extract TestCase instances from item (usually TestSuite)."""
     if isinstance(item, unittest.TestCase):
@@ -78,4 +58,3 @@ def get_suit(name: str=None, skip_names: List[str]=None) -> unittest.TestSuite:
                 setattr(test, 'setUp', lambda: test.skipTest('No need to run everytime.'))
     # Return:
     return suite
-
