@@ -1,18 +1,8 @@
 import asyncio as aio
 import sys
-from collections import deque
 from functools import wraps
 
-
-if sys.version_info < (3, 5, 2):
-    def aiter_compat(func):
-        @wraps(func)
-        async def wrapper(self):
-            return func(self)
-        return wrapper
-else:
-    def aiter_compat(func):
-        return func
+from aiogen.utils import aiter_compat
 
 
 class AsyncGeneratorExit(Exception):
@@ -20,13 +10,12 @@ class AsyncGeneratorExit(Exception):
 
 
 class AsyncGenerator:
-    _cleanup_events = deque()
-
     def __init__(self, coro_func, args, kwargs):
         self._coro_func = coro_func
         self._args = args
         self._kwargs = kwargs
         self._task = None
+        self._loop = aio.get_event_loop()
         self._incoming = aio.Future()  # incoming = async_yield()
         self._outcoming = aio.Future()  # async_yield(outcoming)
 
@@ -46,10 +35,8 @@ class AsyncGenerator:
             coro = self._coro_func(*self._args, **self._kwargs)
             self._task = aio.ensure_future(coro)
             self._task._gen = self
-            # Event to mark if generator cleanup done:
-            event = aio.Event()
-            type(self)._cleanup_events.append(event)
-            # On outer task done, start task to cleanup generator:
+            # On outer done, we should start task to close generator:
+            cleanup_done = aio.Event()
             async def cleanup():
                 try:
                     await self.aclose()
@@ -62,9 +49,17 @@ class AsyncGenerator:
                     if not self._task.done():
                         self._task.set_result(None)
                 finally:
-                    event.set()
+                    cleanup_done.set()
             outer = aio.Task.current_task()
             outer.add_done_callback(lambda _: aio.ensure_future(cleanup()))
+            # We should sure cleanup done before event loop closed:
+            def waiting_cleanup(func):
+                @wraps(func)
+                def wrapper(*args, **kwargs):
+                    self._loop.run_until_complete(cleanup_done.wait())
+                    return func(*args, **kwargs)
+                return wrapper
+            self._loop.close = waiting_cleanup(self._loop.close)
         # Gen closed, raise StopAsyncIteration:
         elif self._task.done():
             raise StopAsyncIteration()
@@ -125,10 +120,6 @@ class AsyncGenerator:
         # Generator finished successfully:
         else:
             raise StopAsyncIteration(self._task.result())
-
-    @classmethod
-    def cleanup(cls) -> aio.Future:
-        return aio.gather(*[e.wait() for e in cls._cleanup_events], return_exceptions=True)
 
 
 def agenerator(coro_func):
