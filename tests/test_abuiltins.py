@@ -52,7 +52,7 @@ class TestABuiltins(AsyncTestCase):
         it = iter(i)
         f = lambda: next(it)
         # af:
-        ait = await aiter(ag(i))
+        ait = aiter(ag(i))
         af = lambda: anext(ait)  # coroutine
         # check:
         self.assertEqual(await alist(aiter(af, 3)), list(iter(f, 3)))
@@ -78,7 +78,7 @@ class TestABuiltins(AsyncTestCase):
     async def test_anext(self):
         i = [1, 2]
         it = iter(i)
-        ait = await aiter(ag(i))
+        ait = aiter(ag(i))
         self.assertEqual(await anext(ait), next(it))
         self.assertEqual(await anext(ait), next(it))
         self.assertEqual(await anext(ait, 3), next(it, 3))

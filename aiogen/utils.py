@@ -1,7 +1,6 @@
 from typing import List, Iterable
 import asyncio as aio
 import unittest
-import sys
 from functools import wraps
 
 
@@ -15,18 +14,6 @@ def run_until_complete(coro):
         loop.run_until_complete(coro)
     finally:
         loop.close()
-
-
-# AITER:
-if sys.version_info < (3, 5, 2):
-    def aiter_compat(func):
-        @wraps(func)
-        async def wrapper(self):
-            return func(self)
-        return wrapper
-else:
-    def aiter_compat(func):
-        return func
 
 
 # TESTS:

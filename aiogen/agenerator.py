@@ -2,8 +2,6 @@ import asyncio as aio
 import sys
 from functools import wraps
 
-from aiogen.utils import aiter_compat
-
 
 class AsyncGeneratorExit(Exception):
     pass
@@ -19,7 +17,6 @@ def agenerator(coro_func):
                 self._incoming = aio.Future()  # incoming = async_yield()
                 self._outcoming = aio.Future()  # async_yield(outcoming)
 
-            @aiter_compat
             def __aiter__(self):
                 return self
 
@@ -36,7 +33,6 @@ def agenerator(coro_func):
                     self._task._gen = self
                     # On outer done, we should start task to close generator:
                     cleanup_done = aio.Event()
-
                     async def cleanup():
                         try:
                             await self.aclose()
@@ -50,19 +46,15 @@ def agenerator(coro_func):
                                 self._task.set_result(None)
                         finally:
                             cleanup_done.set()
-
                     outer = aio.Task.current_task()
                     outer.add_done_callback(lambda _: aio.ensure_future(cleanup()))
-
                     # We should sure cleanup done before event loop closed:
                     def waiting_cleanup(func):
                         @wraps(func)
                         def wrapper(*args, **kwargs):
                             self._loop.run_until_complete(cleanup_done.wait())
                             return func(*args, **kwargs)
-
                         return wrapper
-
                     self._loop.close = waiting_cleanup(self._loop.close)
                 # Gen closed, raise StopAsyncIteration:
                 elif self._task.done():

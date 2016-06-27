@@ -139,14 +139,10 @@ async def atuple(aiterable: AsyncIterable) -> Tuple:
 @agenerator
 async def azip(*iterables: List[Union[Iterable, AsyncIterable]]) -> AsyncIterator:
     """Note: azip supports both iterables and aiterables."""
-    d = deque()
-    d_append = d.append
-    for it in iterables:
-        d.append(
-            iter(it) if isinstance(it, Iterable)
-            else await aiter(it)
-        )
-    iterators = list(d)
+    iterators = [
+        iter(it) if isinstance(it, Iterable) else aiter(it)
+        for it in iterables
+    ]
     sentinel = object()
     while iterators:
         result = []
