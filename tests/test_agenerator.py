@@ -1,17 +1,18 @@
+from typing import AsyncIterator
 from aiogen.utils import AsyncTestCase
 from aiogen.agenerator import agenerator, async_yield, async_yield_from
 from aiogen.abuiltins import anext
 
 
 @agenerator
-async def ay(start):
+async def ay(start) -> AsyncIterator:
     r1 = await async_yield(start)
     r2 = await async_yield(r1)
     return r2
 
 
 @agenerator
-async def ayf(start):
+async def ayf(start) -> AsyncIterator:
     r1 = await async_yield_from(ay(start))
     r2 = await async_yield_from(ay(r1))
     return r2

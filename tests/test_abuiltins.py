@@ -1,10 +1,11 @@
+from typing import AsyncIterator
 from aiogen.utils import AsyncTestCase
 from aiogen.agenerator import agenerator, async_yield
 from aiogen.abuiltins import *
 
 
 @agenerator
-async def ag(iterable):
+async def ag(iterable) -> AsyncIterator:
     for i in iterable:
         await async_yield(i)
 

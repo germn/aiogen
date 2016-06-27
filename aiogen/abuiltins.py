@@ -1,5 +1,6 @@
-from typing import Union, List, Tuple, Dict, Set, FrozenSet, Callable
-from collections.abc import Iterable, Iterator, AsyncIterable, AsyncIterator
+from typing import \
+    Union, List, Tuple, Dict, Set, FrozenSet, Callable, Awaitable, \
+    Iterable, Iterator, AsyncIterable, AsyncIterator
 from collections import deque
 
 from aiogen.agenerator import agenerator, async_yield
@@ -12,21 +13,21 @@ __all__ = (
 )
 
 
-async def aall(aiterable: AsyncIterable) -> bool:
+async def aall(aiterable: AsyncIterable) -> Awaitable[bool]:
     async for element in aiterable:
         if not element:
             return False
     return True
 
 
-async def aany(aiterable: AsyncIterable) -> bool:
+async def aany(aiterable: AsyncIterable) -> Awaitable[bool]:
     async for element in aiterable:
         if element:
             return True
     return False
 
 
-async def adict(aiterable: AsyncIterable) -> Dict:
+async def adict(aiterable: AsyncIterable) -> Awaitable[Dict]:
     return dict(await alist(aiterable))
 
 
@@ -46,11 +47,11 @@ async def afilter(function: Callable, aiterable: AsyncIterable) -> AsyncIterator
             await async_yield(element)
 
 
-async def afrozenset(aiterable: AsyncIterable) -> FrozenSet:
+async def afrozenset(aiterable: AsyncIterable) -> Awaitable[FrozenSet]:
     return frozenset(await alist(aiterable))
 
 
-def aiter(*args):
+def aiter(*args) -> AsyncIterator:
     """Note: aiter expect first arg coroutine function if two arguments passed."""
     if len(args) == 1:
         aiterable, *_ = args
@@ -73,7 +74,7 @@ def aiter(*args):
         )
 
 
-async def alist(aiterable: AsyncIterable) -> List:
+async def alist(aiterable: AsyncIterable) -> Awaitable[List]:
     d = deque()
     d_append = d.append
     async for element in aiterable:
@@ -88,19 +89,19 @@ async def amap(function: Callable, *iterables: List[Union[Iterable, AsyncIterabl
         await async_yield(function(*args))
 
 
-async def amax(*args, **kwargs):
+async def amax(*args, **kwargs) -> Awaitable:
     if len(args) == 1:
         args = (await alist(args[0]), )
     return max(*args, **kwargs)
 
 
-async def amin(*args, **kwargs):
+async def amin(*args, **kwargs) -> Awaitable:
     if len(args) == 1:
         args = (await alist(args[0]), )
     return min(*args, **kwargs)
 
 
-async def anext(*args):
+async def anext(*args) -> Awaitable:
     if len(args) == 1:
         aiterator, *_ = args
         try:
@@ -120,19 +121,19 @@ async def anext(*args):
         )
 
 
-async def aset(aiterable: AsyncIterable) -> Set:
+async def aset(aiterable: AsyncIterable) -> Awaitable[Set]:
     return set(await alist(aiterable))
 
 
-async def asorted(aiterable: AsyncIterable, **kwargs) -> List:
+async def asorted(aiterable: AsyncIterable, **kwargs) -> Awaitable[List]:
     return sorted(await alist(aiterable), **kwargs)
 
 
-async def asum(aiterable: AsyncIterable, *args):
+async def asum(aiterable: AsyncIterable, *args) -> Awaitable:
     return sum(await alist(aiterable), *args)
 
 
-async def atuple(aiterable: AsyncIterable) -> Tuple:
+async def atuple(aiterable: AsyncIterable) -> Awaitable[Tuple]:
     return tuple(await alist(aiterable))
 
 

@@ -1,3 +1,4 @@
+from typing import AsyncIterator
 import asyncio as aio
 import sys
 from functools import wraps
@@ -10,7 +11,7 @@ class AsyncGeneratorExit(Exception):
 def agenerator(coro_func):
     @wraps(coro_func)
     def wrapper(*args, **kwargs):
-        class AsyncGenerator:
+        class AsyncGenerator(AsyncIterator):
             def __init__(self):
                 self._task = None
                 self._loop = aio.get_event_loop()
