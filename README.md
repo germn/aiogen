@@ -1,6 +1,6 @@
 ## aiogen - asynchronous generators for asyncio
 
-`aiogen` - is emulation of asynchronous generators for `asyncio`. While it's not full implementation, it can be used to play with asynchronous generators until this future is not implemented in Python.
+`aiogen` - is emulation of asynchronous generators for `asyncio`. While it's not full implementation, it can be used to play with asynchronous generators while this future is not implemented in Python.
 
 Module tries to meet regular generator's behaviour as much as possible (considering it's based on coroutines).
 
