@@ -10,6 +10,7 @@ setup(
     packages=['aiogen'],
     version='0.1',
     description='Asynchronous generators for asyncio',
+    long_description='`Package Documentation <https://github.com/germn/aiogen/blob/master/README.md>`',
     author='Gerasimov Mikhail',
     author_email='Gerasimov-M-N@yandex.ru',
     url='https://github.com/germn/aiogen',
