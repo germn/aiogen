@@ -13,6 +13,7 @@ setup(
     author='Gerasimov Mikhail',
     author_email='Gerasimov-M-N@yandex.ru',
     url='https://github.com/germn/aiogen',
+    download_url='https://github.com/germn/aiogen/tarball/0.1',
     license='MIT',
     keywords=[
         'asyncio',
