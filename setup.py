@@ -8,7 +8,7 @@ if sys.version_info < (3, 5, 2):
 setup(
     name='aiogen',
     packages=['aiogen'],
-    version='0.12',
+    version='0.1',
     description='Asynchronous generators for asyncio',
     long_description='`Package Documentation <https://github.com/germn/aiogen/blob/master/README.md>`_',
     author='Gerasimov Mikhail',
