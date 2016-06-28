@@ -146,7 +146,7 @@ async def azip(*iterables: List[Union[Iterable, AsyncIterable]]) -> AsyncIterato
     ]
     sentinel = object()
     while iterators:
-        result = []
+        result = deque()
         for it in iterators:
             elem = \
                 next(it, sentinel) if isinstance(it, Iterator) \
