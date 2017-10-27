@@ -1,3 +1,7 @@
+## WARNING
+
+This project is outdated and not supported. Don't use it.
+
 ## aiogen - asynchronous generators for asyncio
 
 `aiogen` - is emulation of asynchronous generators for `asyncio`. While it's not full implementation, it can be used to play with asynchronous generators while this future is not implemented in Python.
